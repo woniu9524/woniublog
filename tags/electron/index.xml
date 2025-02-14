@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Electron on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/electron/</link><description>Recent content in Electron on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 15 Nov 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/electron/index.xml" rel="self" type="application/rss+xml"/><item><title>如何用Electron实现120fps高帧率视频采集</title><link>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</link><pubDate>Fri, 15 Nov 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/cover.jpg" alt="Featured image of post 如何用Electron实现120fps高帧率视频采集" />&lt;blockquote>
+&lt;p>最近在做一个小鼠步态分析的项目，需要用高速摄像头记录小白鼠的运动轨迹。本来，直接用前端的 &lt;code>getUserMedia&lt;/code> ，结果发现事情并没有那么简单&amp;hellip;&lt;/p>&lt;/blockquote>
+&lt;h2 id="踩坑">踩坑
+&lt;/h2>&lt;p>一开始直接在前端录制：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">stream&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kr">await&lt;/span> &lt;span class="nx">navigator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mediaDevices&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getUserMedia&lt;/span>&lt;span class="p">({&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">video&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">width&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">1280&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">height&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">720&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">frameRate&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">120&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">});&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>然后发现：TMD视频有问题，还要用ffmpeg重新编码一遍，还有画质不是很好控制，我查了资料可能达不到120fps录制&lt;/p>
+&lt;h2 id="核心实现思路">核心实现思路
+&lt;/h2>&lt;p>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img.png"
+width="750"
+height="710"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_67cada9e700e5575.png 480w, https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_d3d3b1ddb14739d9.png 1024w"
+loading="lazy"
+alt="结构图"
+class="gallery-image"
+data-flex-grow="105"
+data-flex-basis="253px"
+>&lt;/p>
+&lt;p>整个方案的架构是这样的：&lt;/p>
+&lt;ol>
+&lt;li>Electron作为应用框架&lt;/li>
+&lt;li>FFmpeg负责视频采集和编码&lt;/li>
+&lt;li>WebSocket实现实时预览&lt;/li>
+&lt;li>同时进行预览流和存储流的处理&lt;/li>
+&lt;/ol>
+&lt;p>FFmpeg的参数设置，我把它分成了两路：&lt;/p>
+&lt;ul>
+&lt;li>一路用于实时预览，追求低延迟&lt;/li>
+&lt;li>另一路用于存储，追求高质量&lt;/li>
+&lt;/ul>
+&lt;h2 id="代码实现的关键点">代码实现的关键点
+&lt;/h2>&lt;h3 id="1-启动ffmpeg进程">1. 启动FFmpeg进程
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">args&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-f&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;dshow&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-video_size&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;1280x720&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-framerate&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;120&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 还有超级多参数...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpeg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">spawn&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="2-视频流分流处理">2. 视频流分流处理
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-filter_complex &lt;span class="s2">&amp;#34;split=2[preview][record]&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="3-预览流优化">3. 预览流优化
+&lt;/h3>&lt;p>为了实现低延迟预览，我用了一堆&amp;quot;降质但提速&amp;quot;的参数：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-preset ultrafast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-tune zerolatency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-x264opts &lt;span class="s2">&amp;#34;no-scenecut&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="结语">结语
+&lt;/h2>&lt;p>之前希望尽量在electron里处理用的node，最后弄的很乱很麻烦。后面再用的时候就换python吧，之前处理的太差了，尤其是对摄像头资源占用的问题没解决好。&lt;/p></description></item><item><title>Electron集成FFmpeg</title><link>https://woniu9524.github.io/woniublog/p/electron%E9%9B%86%E6%88%90ffmpeg/</link><pubDate>Thu, 31 Oct 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/electron%E9%9B%86%E6%88%90ffmpeg/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/electron%E9%9B%86%E6%88%90ffmpeg/cover.png" alt="Featured image of post Electron集成FFmpeg" />&lt;h3 id="依赖安装">依赖安装
+&lt;/h3>&lt;p>在electron项目中集成ffmpeg，需要安装@ffmpeg-installer/ffmpeg和fluent-ffmpeg&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">npm install @ffmpeg-installer/ffmpeg fluent-ffmpeg --save
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>其中@ffmpeg-installer会预编译不同平台的二进制文件，通过 npm 包管理和分发这些二进制文件，运行时根据平台选择正确的二进制文件，并且能正确处理文件路径和权限。我们也可以参照类似的方法打包任意命令行工具。而fluent-ffmpeg 是一个 Node.js 的 FFmpeg 命令行封装库。&lt;/p>
+&lt;h3 id="使用">使用
+&lt;/h3>&lt;p>这里我使用的egg框架，使用的时候需要注意编译的问题。在开发环境中，使用ffmpegInstaller.path获取就可以了。编译后ffmpeg在resources\app.asar.unpacked目录下，所以我的需对代码做些修改。如果不是egg，或许情况稍有不同，具体看目录结构和报错就好了。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;span class="lnt">57
+&lt;/span>&lt;span class="lnt">58
+&lt;/span>&lt;span class="lnt">59
+&lt;/span>&lt;span class="lnt">60
+&lt;/span>&lt;span class="lnt">61
+&lt;/span>&lt;span class="lnt">62
+&lt;/span>&lt;span class="lnt">63
+&lt;/span>&lt;span class="lnt">64
+&lt;/span>&lt;span class="lnt">65
+&lt;/span>&lt;span class="lnt">66
+&lt;/span>&lt;span class="lnt">67
+&lt;/span>&lt;span class="lnt">68
+&lt;/span>&lt;span class="lnt">69
+&lt;/span>&lt;span class="lnt">70
+&lt;/span>&lt;span class="lnt">71
+&lt;/span>&lt;span class="lnt">72
+&lt;/span>&lt;span class="lnt">73
+&lt;/span>&lt;span class="lnt">74
+&lt;/span>&lt;span class="lnt">75
+&lt;/span>&lt;span class="lnt">76
+&lt;/span>&lt;span class="lnt">77
+&lt;/span>&lt;span class="lnt">78
+&lt;/span>&lt;span class="lnt">79
+&lt;/span>&lt;span class="lnt">80
+&lt;/span>&lt;span class="lnt">81
+&lt;/span>&lt;span class="lnt">82
+&lt;/span>&lt;span class="lnt">83
+&lt;/span>&lt;span class="lnt">84
+&lt;/span>&lt;span class="lnt">85
+&lt;/span>&lt;span class="lnt">86
+&lt;/span>&lt;span class="lnt">87
+&lt;/span>&lt;span class="lnt">88
+&lt;/span>&lt;span class="lnt">89
+&lt;/span>&lt;span class="lnt">90
+&lt;/span>&lt;span class="lnt">91
+&lt;/span>&lt;span class="lnt">92
+&lt;/span>&lt;span class="lnt">93
+&lt;/span>&lt;span class="lnt">94
+&lt;/span>&lt;span class="lnt">95
+&lt;/span>&lt;span class="lnt">96
+&lt;/span>&lt;span class="lnt">97
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// services/video.js
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="s1">&amp;#39;use strict&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="nx">Service&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ee-core&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpeg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;fluent-ffmpeg&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpegInstaller&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;@ffmpeg-installer/ffmpeg&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffprobeInstaller&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;@ffprobe-installer/ffprobe&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">Log&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ee-core/log&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">class&lt;/span> &lt;span class="nx">VideoService&lt;/span> &lt;span class="kr">extends&lt;/span> &lt;span class="nx">Service&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">constructor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">super&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ctx&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">this&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">initializeFfmpeg&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">initializeFfmpeg&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">try&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 获取正确的 ffmpeg 路径
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">getFfmpegPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">()&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">EE_SERVER_ENV&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s1">&amp;#39;local&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ffmpegInstaller&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 生产环境
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="nx">app&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;electron&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">path&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;path&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 方案1：如果使用 asarUnpack
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">appPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">app&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getAppPath&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">unpackedPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">appPath&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;app.asar&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;app.asar.unpacked&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">join&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">unpackedPath&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;node_modules&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;@ffmpeg-installer&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;win32-x64&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;ffmpeg.exe&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 获取正确的 ffprobe 路径
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">getFfprobePath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">()&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">process&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">env&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">EE_SERVER_ENV&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s1">&amp;#39;local&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">ffprobeInstaller&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">path&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="nx">app&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;electron&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">path&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;path&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 方案1：如果使用 asarUnpack
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">appPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">app&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getAppPath&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">unpackedPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">appPath&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;app.asar&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;app.asar.unpacked&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">join&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">unpackedPath&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;node_modules&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;@ffprobe-installer&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;win32-x64&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;ffprobe.exe&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpegPath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">getFfmpegPath&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">ffprobePath&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">getFfprobePath&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;FFmpeg path:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;FFprobe path:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">ffprobePath&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 检查文件是否存在
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">fs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">require&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;fs&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="nx">fs&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">existsSync&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">throw&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nb">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sb">`FFmpeg executable not found at: &lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="sb">`&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="nx">fs&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">existsSync&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffprobePath&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">throw&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nb">Error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sb">`FFprobe executable not found at: &lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nx">ffprobePath&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="sb">`&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 设置路径
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">ffmpeg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setFfmpegPath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ffmpeg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setFfprobePath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffprobePath&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 测试 FFmpeg 是否可用
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">ffmpeg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getAvailableFormats&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">formats&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">err&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;FFmpeg test failed:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">err&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">throw&lt;/span> &lt;span class="nx">err&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;FFmpeg initialized successfully. Available formats:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">Object&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">keys&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">formats&lt;/span>&lt;span class="p">).&lt;/span>&lt;span class="nx">length&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">});&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="k">catch&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">error&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">error&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Failed to initialize FFmpeg:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">error&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">throw&lt;/span> &lt;span class="nx">error&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// ... [其他代码部分]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">VideoService&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">toString&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">()&lt;/span> &lt;span class="p">=&amp;gt;&lt;/span> &lt;span class="s1">&amp;#39;[class VideoService]&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">module&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">exports&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">VideoService&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div></description></item><item><title>Electron跨语言通信</title><link>https://woniu9524.github.io/woniublog/p/electron%E8%B7%A8%E8%AF%AD%E8%A8%80%E9%80%9A%E4%BF%A1/</link><pubDate>Wed, 23 Oct 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/electron%E8%B7%A8%E8%AF%AD%E8%A8%80%E9%80%9A%E4%BF%A1/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/electron%E8%B7%A8%E8%AF%AD%E8%A8%80%E9%80%9A%E4%BF%A1/cover.png" alt="Featured image of post Electron跨语言通信" />&lt;blockquote>
+&lt;p>需求&lt;/p>&lt;/blockquote>
+&lt;p>项目中有些复杂操作，后面考虑使用python来处理。其实更好的跨语言方案我觉得用tauri wails之类的比较好，看起来会专业一些。不过我打算用electron，其他语言只是作为一个服务。我记得我在大学时候写electron就特别想把python集成进来，但是当时技术比较菜，也没想好的办法，这次使用egg来做，它集成了跨语言的解决方案。我看了一下源码，实际解决方案也很朴素，没有我想的会很高深。实际上就是实现了一个进程的控制。例如我打包一个fastapi程序，一个没有窗口的程序。electron中会启动这个进程，可以进行一些配置比如端口等，然后就正常通信，程序关闭的时候也关闭服务。&lt;/p>
+&lt;blockquote>
+&lt;p>操作&lt;/p>&lt;/blockquote>
+&lt;h3 id="python端">python端
+&lt;/h3>&lt;p>新建一个python文件夹放入相关代码，然后配置打包脚本&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">cx_Freeze&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">setup&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Executable&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 定义额外需要包含的包&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">includes&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.loops&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.loops.auto&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.protocols&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.protocols.http&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.lifespan&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.lifespan.on&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.lifespan.off&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;uvicorn.logging&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;fastapi&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;starlette&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;pydantic&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 创建可执行文件的配置&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">executableApp&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">Executable&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">script&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;main.py&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">target_name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;pyapp&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 打包的参数配置&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">options&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;build_exe&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;build_exe&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;./dist/&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;excludes&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;*.txt&amp;#34;&lt;/span>&lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;optimize&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;includes&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">includes&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;packages&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">includes&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;zip_include_packages&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;*&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;zip_exclude_packages&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">setup&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">name&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;pyapp&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">version&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;1.0&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">description&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;python app&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">options&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">options&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">executables&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">executableApp&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>electron中配置启动&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">async&lt;/span> &lt;span class="nx">createPythonServer&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// method 1: Use the default Settings
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="c1">//const entity = await Cross.run(serviceName);
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// method 2: Use custom configuration
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="kr">const&lt;/span> &lt;span class="nx">serviceName&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;python&amp;#34;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">opt&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">name&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="s1">&amp;#39;pyapp&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">cmd&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">join&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">Ps&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getExtraResourcesDir&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="s1">&amp;#39;py&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;pyapp&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">directory&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="nx">path&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">join&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">Ps&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getExtraResourcesDir&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="s1">&amp;#39;py&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">args&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;--port=10305&amp;#39;&lt;/span>&lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">windowsExtname&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kc">true&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">appExit&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kc">true&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">entity&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kr">await&lt;/span> &lt;span class="nx">Cross&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">serviceName&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">opt&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;server name:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">entity&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">name&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;server config:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">entity&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">config&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Log&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">info&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;server url:&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">entity&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getUrl&lt;/span>&lt;span class="p">());&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div></description></item></channel></rss>

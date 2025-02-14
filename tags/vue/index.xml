@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vue on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/vue/</link><description>Recent content in Vue on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 15 Nov 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/vue/index.xml" rel="self" type="application/rss+xml"/><item><title>如何用Electron实现120fps高帧率视频采集</title><link>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</link><pubDate>Fri, 15 Nov 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/cover.jpg" alt="Featured image of post 如何用Electron实现120fps高帧率视频采集" />&lt;blockquote>
+&lt;p>最近在做一个小鼠步态分析的项目，需要用高速摄像头记录小白鼠的运动轨迹。本来，直接用前端的 &lt;code>getUserMedia&lt;/code> ，结果发现事情并没有那么简单&amp;hellip;&lt;/p>&lt;/blockquote>
+&lt;h2 id="踩坑">踩坑
+&lt;/h2>&lt;p>一开始直接在前端录制：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">stream&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kr">await&lt;/span> &lt;span class="nx">navigator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mediaDevices&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getUserMedia&lt;/span>&lt;span class="p">({&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">video&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">width&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">1280&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">height&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">720&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">frameRate&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">120&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">});&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>然后发现：TMD视频有问题，还要用ffmpeg重新编码一遍，还有画质不是很好控制，我查了资料可能达不到120fps录制&lt;/p>
+&lt;h2 id="核心实现思路">核心实现思路
+&lt;/h2>&lt;p>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img.png"
+width="750"
+height="710"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_67cada9e700e5575.png 480w, https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_d3d3b1ddb14739d9.png 1024w"
+loading="lazy"
+alt="结构图"
+class="gallery-image"
+data-flex-grow="105"
+data-flex-basis="253px"
+>&lt;/p>
+&lt;p>整个方案的架构是这样的：&lt;/p>
+&lt;ol>
+&lt;li>Electron作为应用框架&lt;/li>
+&lt;li>FFmpeg负责视频采集和编码&lt;/li>
+&lt;li>WebSocket实现实时预览&lt;/li>
+&lt;li>同时进行预览流和存储流的处理&lt;/li>
+&lt;/ol>
+&lt;p>FFmpeg的参数设置，我把它分成了两路：&lt;/p>
+&lt;ul>
+&lt;li>一路用于实时预览，追求低延迟&lt;/li>
+&lt;li>另一路用于存储，追求高质量&lt;/li>
+&lt;/ul>
+&lt;h2 id="代码实现的关键点">代码实现的关键点
+&lt;/h2>&lt;h3 id="1-启动ffmpeg进程">1. 启动FFmpeg进程
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">args&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-f&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;dshow&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-video_size&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;1280x720&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-framerate&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;120&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 还有超级多参数...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpeg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">spawn&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="2-视频流分流处理">2. 视频流分流处理
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-filter_complex &lt;span class="s2">&amp;#34;split=2[preview][record]&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="3-预览流优化">3. 预览流优化
+&lt;/h3>&lt;p>为了实现低延迟预览，我用了一堆&amp;quot;降质但提速&amp;quot;的参数：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-preset ultrafast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-tune zerolatency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-x264opts &lt;span class="s2">&amp;#34;no-scenecut&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="结语">结语
+&lt;/h2>&lt;p>之前希望尽量在electron里处理用的node，最后弄的很乱很麻烦。后面再用的时候就换python吧，之前处理的太差了，尤其是对摄像头资源占用的问题没解决好。&lt;/p></description></item><item><title>Vue组件复用机制与key属性刷新</title><link>https://woniu9524.github.io/woniublog/p/vue%E7%BB%84%E4%BB%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E4%B8%8Ekey%E5%B1%9E%E6%80%A7%E5%88%B7%E6%96%B0/</link><pubDate>Tue, 05 Nov 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/vue%E7%BB%84%E4%BB%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E4%B8%8Ekey%E5%B1%9E%E6%80%A7%E5%88%B7%E6%96%B0/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/vue%E7%BB%84%E4%BB%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E4%B8%8Ekey%E5%B1%9E%E6%80%A7%E5%88%B7%E6%96%B0/cover.png" alt="Featured image of post Vue组件复用机制与key属性刷新" />&lt;blockquote>
+&lt;p>今天有遇到，组件不能正常更新的问题，第二次使用key来实现组件刷新，在react中我记得也有相同的用法。&lt;/p>&lt;/blockquote>
+&lt;h2 id="1-组件复用机制">1. 组件复用机制
+&lt;/h2>&lt;h3 id="11-基本概念">1.1 基本概念
+&lt;/h3>&lt;p>Vue 为了提高性能，会尽可能地复用已经创建的组件实例。当一个组件的显示状态发生变化时（比如通过 v-if 或 v-show），Vue 不会立即销毁并重新创建组件，而是尽可能地复用现有组件实例。&lt;/p>
+&lt;h3 id="12-示例说明">1.2 示例说明
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-vue" data-lang="vue">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">&amp;lt;!--&lt;/span> &lt;span class="nx">当切换不同的&lt;/span> &lt;span class="nx">userId&lt;/span> &lt;span class="nx">时&lt;/span>&lt;span class="err">，&lt;/span>&lt;span class="nx">UserProfile&lt;/span> &lt;span class="nx">组件会被复用&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">UserProfile&lt;/span> &lt;span class="nt">v-if&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;showProfile&amp;#34; :user-id=&amp;#34;userId&amp;#34;&lt;/span>&lt;span class="p"> /&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>在这个例子中，即使 userId 改变，组件实例也会被复用，这意味着：&lt;/p>
+&lt;ul>
+&lt;li>组件的生命周期钩子不会重新触发&lt;/li>
+&lt;li>组件的 data 不会重新初始化&lt;/li>
+&lt;li>仅会更新组件的 props&lt;/li>
+&lt;/ul>
+&lt;h3 id="13-复用的优缺点">1.3 复用的优缺点
+&lt;/h3>&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>提高性能，减少组件创建和销毁的开销&lt;/li>
+&lt;li>保持组件状态，避免不必要的重渲染&lt;/li>
+&lt;li>减少内存占用&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>可能导致状态残留&lt;/li>
+&lt;li>某些情况下不符合业务需求&lt;/li>
+&lt;li>可能造成数据更新不及时&lt;/li>
+&lt;/ul>
+&lt;h2 id="2-key-属性">2. key 属性
+&lt;/h2>&lt;h3 id="21-作用">2.1 作用
+&lt;/h3>&lt;p>key 属性是 Vue 中用于标识虚拟 DOM 节点的唯一标识符。它可以：&lt;/p>
+&lt;ul>
+&lt;li>强制组件重新渲染&lt;/li>
+&lt;li>管理可复用的元素&lt;/li>
+&lt;li>触发过渡效果&lt;/li>
+&lt;/ul>
+&lt;h3 id="22-使用场景">2.2 使用场景
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-vue" data-lang="vue">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!--&lt;/span> &lt;span class="nx">基本用法&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">&amp;lt;!--&lt;/span> &lt;span class="nx">列表渲染&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="nt">v-for&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;item in items&amp;#34; :key=&amp;#34;item.id&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{{&lt;/span> &lt;span class="na">item.name&lt;/span> &lt;span class="p">}}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">&amp;lt;!--&lt;/span> &lt;span class="na">强制组件重新渲染&lt;/span> &lt;span class="err">--&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">UserProfile&lt;/span> &lt;span class="nt">:key&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span> &lt;span class="nt">:user-id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span> &lt;span class="p">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="23-工作原理">2.3 工作原理
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;strong>Virtual DOM 比对&lt;/strong>：&lt;/p>
+&lt;ul>
+&lt;li>Vue 使用 key 来标识节点的唯一性&lt;/li>
+&lt;li>在更新时，比较新旧节点的 key 值&lt;/li>
+&lt;li>如果 key 不同，则认为是不同的元素，会重新渲染&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>组件更新流程&lt;/strong>：&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 伪代码示例
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">oldVnode&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">key&lt;/span> &lt;span class="o">!==&lt;/span> &lt;span class="nx">newVnode&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 销毁旧组件，创建新组件
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">destroyComponent&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">oldVnode&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">createComponent&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">newVnode&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 复用组件，更新属性
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">updateComponent&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">oldVnode&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">newVnode&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="3-实际应用示例">3. 实际应用示例
+&lt;/h2>&lt;h3 id="31-不使用-key-的问题">3.1 不使用 key 的问题
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-vue" data-lang="vue">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">UserProfile&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">v-if&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;showProfile&amp;#34;&lt;/span>&lt;span class="p">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&lt;/span> &lt;span class="nt">:user-id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">script&lt;/span> &lt;span class="na">setup&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="nx">ref&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="s1">&amp;#39;vue&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">userId&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">ref&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">showProfile&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">ref&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 当 userId 变化时，组件会被复用
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 可能导致数据不更新或状态混乱
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">script&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="32-使用-key-的正确方式">3.2 使用 key 的正确方式
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-vue" data-lang="vue">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">UserProfile&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">v-if&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;showProfile&amp;#34;&lt;/span>&lt;span class="p">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&lt;/span> &lt;span class="nt">:key&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">:user-id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">/&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">template&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">script&lt;/span> &lt;span class="na">setup&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">import&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="nx">ref&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="nx">from&lt;/span> &lt;span class="s1">&amp;#39;vue&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">userId&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">ref&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">showProfile&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">ref&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 当 userId 变化时，组件会重新创建
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 确保数据完全刷新，状态重置
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">script&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="4-最佳实践">4. 最佳实践
+&lt;/h2>&lt;h3 id="41-何时使用-key">4.1 何时使用 key
+&lt;/h3>&lt;ul>
+&lt;li>列表渲染中（v-for）&lt;/li>
+&lt;li>需要强制组件重新渲染时&lt;/li>
+&lt;li>使用动态组件时&lt;/li>
+&lt;li>需要触发过渡效果时&lt;/li>
+&lt;/ul>
+&lt;h3 id="42-key-的选择">4.2 key 的选择
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-vue" data-lang="vue">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!--&lt;/span> &lt;span class="nx">推荐的&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="nx">值选择&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!--&lt;/span> &lt;span class="mf">1.&lt;/span> &lt;span class="nx">使用唯一标识符&lt;/span> &lt;span class="o">--&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="nt">v-for&lt;/span>&lt;span class="s">=&amp;#34;item in items&amp;#34; :key=&amp;#34;item.id&amp;#34;&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&amp;lt;!-- 2. 使用索引（当列表是静态的） --&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&amp;lt;div v-for=&amp;#34;(item, index) in items&amp;#34; &lt;/span>&lt;span class="nt">:key&lt;/span>&lt;span class="s">=&amp;#34;index&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&amp;lt;!--&lt;/span> &lt;span class="na">3.&lt;/span> &lt;span class="na">使用组合值&lt;/span> &lt;span class="err">--&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">Component&lt;/span> &lt;span class="nt">:key&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;`${userId}-${type}`&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="43-注意事项">4.3 注意事项
+&lt;/h3>&lt;ul>
+&lt;li>key 必须是唯一的&lt;/li>
+&lt;li>不要使用随机数作为 key&lt;/li>
+&lt;li>避免使用可能会变化的值作为 key&lt;/li>
+&lt;li>在使用 v-for 时总是建议提供 key&lt;/li>
+&lt;/ul>
+&lt;h2 id="5-性能考虑">5. 性能考虑
+&lt;/h2>&lt;ul>
+&lt;li>合理使用 key 可以提高更新效率&lt;/li>
+&lt;li>避免使用索引作为 key（在动态列表中）&lt;/li>
+&lt;li>在大量数据渲染时，key 的选择会影响性能&lt;/li>
+&lt;/ul></description></item></channel></rss>
