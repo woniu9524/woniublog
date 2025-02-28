@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ollama on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/ollama/</link><description>Recent content in Ollama on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 14 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/ollama/index.xml" rel="self" type="application/rss+xml"/><item><title>搜索暴露在公网中的Ollama，以及Ollama安全部署建议</title><link>https://woniu9524.github.io/woniublog/p/%E6%90%9C%E7%B4%A2%E6%9A%B4%E9%9C%B2%E5%9C%A8%E5%85%AC%E7%BD%91%E4%B8%AD%E7%9A%84ollama%E4%BB%A5%E5%8F%8Aollama%E5%AE%89%E5%85%A8%E9%83%A8%E7%BD%B2%E5%BB%BA%E8%AE%AE/</link><pubDate>Fri, 14 Feb 2025 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E6%90%9C%E7%B4%A2%E6%9A%B4%E9%9C%B2%E5%9C%A8%E5%85%AC%E7%BD%91%E4%B8%AD%E7%9A%84ollama%E4%BB%A5%E5%8F%8Aollama%E5%AE%89%E5%85%A8%E9%83%A8%E7%BD%B2%E5%BB%BA%E8%AE%AE/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E6%90%9C%E7%B4%A2%E6%9A%B4%E9%9C%B2%E5%9C%A8%E5%85%AC%E7%BD%91%E4%B8%AD%E7%9A%84ollama%E4%BB%A5%E5%8F%8Aollama%E5%AE%89%E5%85%A8%E9%83%A8%E7%BD%B2%E5%BB%BA%E8%AE%AE/cover.png" alt="Featured image of post 搜索暴露在公网中的Ollama，以及Ollama安全部署建议" />&lt;blockquote>
+&lt;p>Ollama通常被设计为本地使用，但有时为了便于分享会直接部署在公网服务器上。这种做法可能导致任何互联网用户都能调用你的Ollama服务。本文将探讨这个安全隐患以及相关的防护建议。&lt;/p>&lt;/blockquote>
+&lt;h2 id="一通过fofa搜索ollama-api">一、通过Fofa搜索Ollama API
+&lt;/h2>&lt;p>Fofa是一个强大的互联网设备和服务搜索引擎，可以帮助发现公开的API服务。通过特定的搜索语法，我们可以精准定位暴露在互联网上的Ollama API服务。&lt;/p>
+&lt;h3 id="fofa搜索步骤">Fofa搜索步骤
+&lt;/h3>&lt;ol>
+&lt;li>访问Fofa官网，使用以下搜索语句：&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">app=&amp;#34;Ollama&amp;#34; &amp;amp;&amp;amp; is_domain=false
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>这个搜索语句包含两个关键条件：&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>app=&amp;ldquo;Ollama&amp;rdquo;&lt;/strong>：筛选Ollama相关服务&lt;/li>
+&lt;li>&lt;strong>is_domain=false&lt;/strong>：排除域名服务，只显示直接暴露的API端点&lt;/li>
+&lt;/ul>
+&lt;h2 id="二使用shodan搜索ollama-api">二、使用Shodan搜索Ollama API
+&lt;/h2>&lt;p>Shodan是另一个专门用于发现互联网设备和服务的搜索引擎。它可以帮助我们找到运行中的Ollama实例。&lt;/p>
+&lt;h3 id="shodan搜索方法">Shodan搜索方法
+&lt;/h3>&lt;ol>
+&lt;li>访问&lt;a class="link" href="https://shodan.io/" target="_blank" rel="noopener"
+>Shodan官网&lt;/a>，输入以下搜索语句：&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Ollama is running
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>搜索结果会返回包含Ollama API实例的IP地址和端口信息。&lt;/p>
+&lt;h2 id="结语">结语
+&lt;/h2>&lt;p>不要把Ollama直接部署在公网上，另外部署在公网上的服务要考虑安全问题，很容易被扫出来。&lt;/p></description></item></channel></rss>

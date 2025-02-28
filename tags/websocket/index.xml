@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Websocket on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/websocket/</link><description>Recent content in Websocket on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 15 Nov 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/websocket/index.xml" rel="self" type="application/rss+xml"/><item><title>如何用Electron实现120fps高帧率视频采集</title><link>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</link><pubDate>Fri, 15 Nov 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/cover.jpg" alt="Featured image of post 如何用Electron实现120fps高帧率视频采集" />&lt;blockquote>
+&lt;p>最近在做一个小鼠步态分析的项目，需要用高速摄像头记录小白鼠的运动轨迹。本来，直接用前端的 &lt;code>getUserMedia&lt;/code> ，结果发现事情并没有那么简单&amp;hellip;&lt;/p>&lt;/blockquote>
+&lt;h2 id="踩坑">踩坑
+&lt;/h2>&lt;p>一开始直接在前端录制：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">stream&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kr">await&lt;/span> &lt;span class="nx">navigator&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">mediaDevices&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getUserMedia&lt;/span>&lt;span class="p">({&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">video&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">width&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">1280&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">height&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">720&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">frameRate&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="mi">120&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">});&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>然后发现：TMD视频有问题，还要用ffmpeg重新编码一遍，还有画质不是很好控制，我查了资料可能达不到120fps录制&lt;/p>
+&lt;h2 id="核心实现思路">核心实现思路
+&lt;/h2>&lt;p>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img.png"
+width="750"
+height="710"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_67cada9e700e5575.png 480w, https://woniu9524.github.io/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/img_hu_d3d3b1ddb14739d9.png 1024w"
+loading="lazy"
+alt="结构图"
+class="gallery-image"
+data-flex-grow="105"
+data-flex-basis="253px"
+>&lt;/p>
+&lt;p>整个方案的架构是这样的：&lt;/p>
+&lt;ol>
+&lt;li>Electron作为应用框架&lt;/li>
+&lt;li>FFmpeg负责视频采集和编码&lt;/li>
+&lt;li>WebSocket实现实时预览&lt;/li>
+&lt;li>同时进行预览流和存储流的处理&lt;/li>
+&lt;/ol>
+&lt;p>FFmpeg的参数设置，我把它分成了两路：&lt;/p>
+&lt;ul>
+&lt;li>一路用于实时预览，追求低延迟&lt;/li>
+&lt;li>另一路用于存储，追求高质量&lt;/li>
+&lt;/ul>
+&lt;h2 id="代码实现的关键点">代码实现的关键点
+&lt;/h2>&lt;h3 id="1-启动ffmpeg进程">1. 启动FFmpeg进程
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">args&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-f&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;dshow&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-video_size&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;1280x720&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s1">&amp;#39;-framerate&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;120&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 还有超级多参数...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kr">const&lt;/span> &lt;span class="nx">ffmpeg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">spawn&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">ffmpegPath&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="2-视频流分流处理">2. 视频流分流处理
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-filter_complex &lt;span class="s2">&amp;#34;split=2[preview][record]&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="3-预览流优化">3. 预览流优化
+&lt;/h3>&lt;p>为了实现低延迟预览，我用了一堆&amp;quot;降质但提速&amp;quot;的参数：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">-preset ultrafast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-tune zerolatency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-x264opts &lt;span class="s2">&amp;#34;no-scenecut&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="结语">结语
+&lt;/h2>&lt;p>之前希望尽量在electron里处理用的node，最后弄的很乱很麻烦。后面再用的时候就换python吧，之前处理的太差了，尤其是对摄像头资源占用的问题没解决好。&lt;/p></description></item></channel></rss>

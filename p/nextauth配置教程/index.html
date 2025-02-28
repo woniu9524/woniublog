@@ -1,0 +1,643 @@
+<!doctype html><html lang=zh-cn dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="使用 NextAuth.js 实现认证功能的完整配置指南"><title>NextAuth配置教程</title>
+<link rel=canonical href=https://woniu9524.github.io/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/><link rel=stylesheet href=/woniublog/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css><meta property='og:title' content="NextAuth配置教程"><meta property='og:description' content="使用 NextAuth.js 实现认证功能的完整配置指南"><meta property='og:url' content='https://woniu9524.github.io/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/'><meta property='og:site_name' content='ZhangChengのBlog'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='next.js'><meta property='article:tag' content='authentication'><meta property='article:tag' content='prisma'><meta property='article:published_time' content='2024-10-20T00:00:00+00:00'><meta property='article:modified_time' content='2024-10-20T00:00:00+00:00'><meta property='og:image' content='https://woniu9524.github.io/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/cover.png'><meta name=twitter:title content="NextAuth配置教程"><meta name=twitter:description content="使用 NextAuth.js 实现认证功能的完整配置指南"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content='https://woniu9524.github.io/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/cover.png'><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/woniublog/><img src=/woniublog/img/avatar_hu_8c6bd23f5ad648ad.png width=300 height=300 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>🍥</span></figure><div class=site-meta><h1 class=site-name><a href=/woniublog>ZhangChengのBlog</a></h1><h2 class=site-description>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2></div></header><ol class=menu-social><li><a href=https://github.com/woniu9524/ target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://x.com/duolaadie target=_blank title=Twitter rel=me><svg class="icon icon-tabler icon-tabler-brand-twitter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84.0 00.497-3.753C20.18 7.773 21.692 5.25 22 4.009z"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/woniublog/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/woniublog/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/woniublog/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/woniublog/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#简述next-auth配置>简述next-auth配置</a></li><li><a href=#步骤1-安装依赖>步骤1: 安装依赖</a></li><li><a href=#步骤2-配置环境变量>步骤2: 配置环境变量</a></li><li><a href=#步骤3-设置prisma>步骤3: 设置Prisma</a></li><li><a href=#步骤4-创建nextauth配置文件>步骤4: 创建NextAuth配置文件</a></li><li><a href=#步骤5-创建api路由>步骤5: 创建API路由</a></li><li><a href=#步骤6-创建注册api>步骤6: 创建注册API</a></li><li><a href=#步骤7-创建登录和注册页面>步骤7: 创建登录和注册页面</a></li><li><a href=#步骤8-在应用中使用nextauth>步骤8: 在应用中使用NextAuth</a></li><li><a href=#步骤9-保护路由>步骤9: 保护路由</a></li></ol></nav></div></section></aside><main class="main full-width"><article class="has-image main-article"><header class=article-header><div class=article-image><a href=/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/><img src=/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/cover_hu_f026ee8473b8a355.png srcset="/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/cover_hu_f026ee8473b8a355.png 800w, /woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/cover_hu_d7585a130f78afed.png 1600w" width=800 height=600 loading=lazy alt="Featured image of post NextAuth配置教程"></a></div><div class=article-details><header class=article-category><a href=/woniublog/categories/frontend-world/ style=background-color:#3d405b;color:#f2cc8f>前端万花筒</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/woniublog/p/nextauth%E9%85%8D%E7%BD%AE%E6%95%99%E7%A8%8B/>NextAuth配置教程</a></h2><h3 class=article-subtitle>使用 NextAuth.js 实现认证功能的完整配置指南</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Oct 20, 2024</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>阅读时长: 6 分钟</time></div></footer></div></header><section class=article-content><h1 id=nextauth配置教程>NextAuth配置教程</h1><blockquote><p>尝试使用Prisma作为数据库适配器,并配置GitHub OAuth和邮箱密码登录。</p></blockquote><h2 id=简述next-auth配置>简述next-auth配置</h2><p>next-auth是用来给next项目增加认证的，既可以配置邮箱也可以配置GitHub，Google等授权认证，整个使用流程相对简单，而且似乎配置GitHub认证好像其实数据库都可以不要。暂时还处于摸索阶段，勉勉强强配置好了登录，实际上当前配置的逻辑还有点问题，例如GitHub授权后user表中有邮箱，这时候如果邮箱注册会冲突，不过处理起来也还好，暂时先不做了。</p><p>关于使用，客户端中提供useSession拿到用户信息，服务端中通过getServerSession获取用户信息。总的来说配置和使用上手难度还是比较容易的。但是配置Google的时候总是报错，测试可能是服务器连不上，但是我开了全局也不行，后面再试试。
+<img src=https://github.com/user-attachments/assets/57ee1d11-065c-4f85-a8b1-e9046f76767c loading=lazy alt=image></p><p>下面用配置好的代码，用Claude生成了大致的步骤</p><h2 id=步骤1-安装依赖>步骤1: 安装依赖</h2><p>首先,安装必要的依赖:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>npm install next-auth @prisma/client @next-auth/prisma-adapter bcryptjs
+</span></span><span class=line><span class=cl>npm install prisma --save-dev
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤2-配置环境变量>步骤2: 配置环境变量</h2><p>在<code>.env</code>文件中添加以下环境变量:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-env data-lang=env><span class=line><span class=cl><span class=nv>DATABASE_URL</span><span class=o>=</span><span class=s2>&#34;your_database_url_here&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>NEXTAUTH_URL</span><span class=o>=</span>http://localhost:3000
+</span></span><span class=line><span class=cl><span class=nv>NEXTAUTH_SECRET</span><span class=o>=</span>your_nextauth_secret_here
+</span></span><span class=line><span class=cl><span class=nv>GITHUB_ID</span><span class=o>=</span>your_github_client_id
+</span></span><span class=line><span class=cl><span class=nv>GITHUB_SECRET</span><span class=o>=</span>your_github_client_secret
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤3-设置prisma>步骤3: 设置Prisma</h2><p>初始化Prisma并创建数据库schema:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>npx prisma init
+</span></span></code></pre></td></tr></table></div></div><p>在<code>prisma/schema.prisma</code>文件中定义您的模型。这里是一个基本的用户模型示例:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>datasource db {
+</span></span><span class=line><span class=cl>  provider = &#34;postgresql&#34;
+</span></span><span class=line><span class=cl>  url      = env(&#34;DATABASE_URL&#34;)
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>generator client {
+</span></span><span class=line><span class=cl>  provider = &#34;prisma-client-js&#34;
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>model Account {
+</span></span><span class=line><span class=cl>  id                 String  @id @default(cuid())
+</span></span><span class=line><span class=cl>  userId             String
+</span></span><span class=line><span class=cl>  type               String
+</span></span><span class=line><span class=cl>  provider           String
+</span></span><span class=line><span class=cl>  providerAccountId  String
+</span></span><span class=line><span class=cl>  refresh_token      String?  @db.Text
+</span></span><span class=line><span class=cl>  access_token       String?  @db.Text
+</span></span><span class=line><span class=cl>  expires_at         Int?
+</span></span><span class=line><span class=cl>  token_type         String?
+</span></span><span class=line><span class=cl>  scope              String?
+</span></span><span class=line><span class=cl>  id_token           String?  @db.Text
+</span></span><span class=line><span class=cl>  session_state      String?
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  @@unique([provider, providerAccountId])
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>model Session {
+</span></span><span class=line><span class=cl>  id           String   @id @default(cuid())
+</span></span><span class=line><span class=cl>  sessionToken String   @unique
+</span></span><span class=line><span class=cl>  userId       String
+</span></span><span class=line><span class=cl>  expires      DateTime
+</span></span><span class=line><span class=cl>  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>model User {
+</span></span><span class=line><span class=cl>  id            String    @id @default(cuid())
+</span></span><span class=line><span class=cl>  name          String?
+</span></span><span class=line><span class=cl>  email         String    @unique
+</span></span><span class=line><span class=cl>  password      String?
+</span></span><span class=line><span class=cl>  emailVerified DateTime?
+</span></span><span class=line><span class=cl>  image         String?
+</span></span><span class=line><span class=cl>  accounts      Account[]
+</span></span><span class=line><span class=cl>  sessions      Session[]
+</span></span><span class=line><span class=cl>  createdAt DateTime @default(now())
+</span></span><span class=line><span class=cl>  updatedAt DateTime @updatedAt
+</span></span><span class=line><span class=cl>}
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>model VerificationToken {
+</span></span><span class=line><span class=cl>  identifier String
+</span></span><span class=line><span class=cl>  token      String   @unique
+</span></span><span class=line><span class=cl>  expires    DateTime
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  @@unique([identifier, token])
+</span></span><span class=line><span class=cl>}
+</span></span></code></pre></td></tr></table></div></div><p>然后,运行以下命令来创建数据库表:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>npx prisma db push 
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤4-创建nextauth配置文件>步骤4: 创建NextAuth配置文件</h2><p>创建<code>lib/auth.ts</code>文件并添加以下内容:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-typescript data-lang=typescript><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span><span class=nx>NextAuthOptions</span><span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;next-auth&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span><span class=nx>PrismaAdapter</span><span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;@next-auth/prisma-adapter&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span><span class=nx>PrismaClient</span><span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;@prisma/client&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=nx>CredentialsProvider</span> <span class=kr>from</span> <span class=s2>&#34;next-auth/providers/credentials&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=nx>GitHubProvider</span> <span class=kr>from</span> <span class=s2>&#34;next-auth/providers/github&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=nx>bcrypt</span> <span class=kr>from</span> <span class=s2>&#34;bcryptjs&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 创建 Prisma 客户端实例
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kr>const</span> <span class=nx>prisma</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>PrismaClient</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 定义 NextAuth 的配置选项
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kr>export</span> <span class=kr>const</span> <span class=nx>authOptions</span>: <span class=kt>NextAuthOptions</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=c1>// 使用 Prisma 适配器来处理数据库操作
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>adapter</span>: <span class=kt>PrismaAdapter</span><span class=p>(</span><span class=nx>prisma</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 配置身份验证提供者
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>providers</span><span class=o>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 使用邮箱密码的凭证提供者
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=nx>CredentialsProvider</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>            <span class=nx>name</span><span class=o>:</span> <span class=s2>&#34;Credentials&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nx>credentials</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>email</span><span class=o>:</span> <span class=p>{</span><span class=nx>label</span><span class=o>:</span> <span class=s2>&#34;Email&#34;</span><span class=p>,</span> <span class=kr>type</span><span class=o>:</span> <span class=s2>&#34;text&#34;</span><span class=p>},</span>
+</span></span><span class=line><span class=cl>                <span class=nx>password</span><span class=o>:</span> <span class=p>{</span><span class=nx>label</span><span class=o>:</span> <span class=s2>&#34;Password&#34;</span><span class=p>,</span> <span class=kr>type</span><span class=o>:</span> <span class=s2>&#34;password&#34;</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=p>},</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 验证用户凭证
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=kr>async</span> <span class=nx>authorize</span><span class=p>(</span><span class=nx>credentials</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>credentials</span><span class=o>?</span><span class=p>.</span><span class=nx>email</span> <span class=o>||</span> <span class=o>!</span><span class=nx>credentials</span><span class=o>?</span><span class=p>.</span><span class=nx>password</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=k>throw</span> <span class=k>new</span> <span class=nb>Error</span><span class=p>(</span><span class=s2>&#34;Missing credentials&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                <span class=c1>// 在数据库中查找用户
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kr>const</span> <span class=nx>user</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>findUnique</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>                    <span class=nx>where</span><span class=o>:</span> <span class=p>{</span><span class=nx>email</span>: <span class=kt>credentials.email</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>                <span class=p>});</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>user</span> <span class=o>||</span> <span class=o>!</span><span class=nx>user</span><span class=p>.</span><span class=nx>password</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=k>throw</span> <span class=k>new</span> <span class=nb>Error</span><span class=p>(</span><span class=s2>&#34;User not found&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                <span class=c1>// 验证密码
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kr>const</span> <span class=nx>isPasswordValid</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>bcrypt</span><span class=p>.</span><span class=nx>compare</span><span class=p>(</span><span class=nx>credentials</span><span class=p>.</span><span class=nx>password</span><span class=p>,</span> <span class=nx>user</span><span class=p>.</span><span class=nx>password</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>isPasswordValid</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=k>throw</span> <span class=k>new</span> <span class=nb>Error</span><span class=p>(</span><span class=s2>&#34;Invalid password&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=nx>user</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>}),</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// GitHub OAuth 提供者
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=nx>GitHubProvider</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>            <span class=nx>clientId</span>: <span class=kt>process.env.GITHUB_ID</span><span class=o>!</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>            <span class=nx>clientSecret</span>: <span class=kt>process.env.GITHUB_SECRET</span><span class=o>!</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=p>}),</span>
+</span></span><span class=line><span class=cl>    <span class=p>],</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 自定义认证页面路径
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>pages</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>signIn</span><span class=o>:</span> <span class=s1>&#39;/auth/signin&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nx>signOut</span><span class=o>:</span> <span class=s1>&#39;/auth/signout&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nx>error</span><span class=o>:</span> <span class=s1>&#39;/auth/error&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nx>verifyRequest</span><span class=o>:</span> <span class=s1>&#39;/auth/verify-request&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 使用 JWT 策略管理会话
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>session</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>strategy</span><span class=o>:</span> <span class=s2>&#34;jwt&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 回调函数配置
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>callbacks</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 登录回调
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kr>async</span> <span class=nx>signIn</span><span class=p>({</span><span class=nx>user</span><span class=p>,</span> <span class=nx>account</span><span class=p>,</span> <span class=nx>profile</span><span class=p>,</span> <span class=nx>email</span><span class=p>,</span> <span class=nx>credentials</span><span class=p>})</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;Sign In Callback:&#34;</span><span class=p>,</span> <span class=p>{</span><span class=nx>user</span><span class=p>,</span> <span class=nx>account</span><span class=p>,</span> <span class=nx>profile</span><span class=p>,</span> <span class=nx>email</span><span class=p>});</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=c1>// 处理 GitHub 登录
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=k>if</span> <span class=p>(</span><span class=nx>account</span> <span class=o>&amp;&amp;</span> <span class=nx>account</span><span class=p>.</span><span class=nx>provider</span> <span class=o>===</span> <span class=s1>&#39;github&#39;</span> <span class=o>&amp;&amp;</span> <span class=nx>profile</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                    <span class=c1>// 查找现有用户
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=kr>const</span> <span class=nx>existingUser</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>findFirst</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>                        <span class=nx>where</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                            <span class=nx>OR</span><span class=o>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>                                <span class=p>{</span><span class=nx>email</span>: <span class=kt>profile.email</span><span class=p>},</span>
+</span></span><span class=line><span class=cl>                                <span class=p>{</span><span class=nx>accounts</span><span class=o>:</span> <span class=p>{</span><span class=nx>some</span><span class=o>:</span> <span class=p>{</span><span class=nx>providerAccountId</span>: <span class=kt>account.providerAccountId</span><span class=p>}}}</span>
+</span></span><span class=line><span class=cl>                            <span class=p>]</span>
+</span></span><span class=line><span class=cl>                        <span class=p>},</span>
+</span></span><span class=line><span class=cl>                        <span class=nx>include</span><span class=o>:</span> <span class=p>{</span><span class=nx>accounts</span>: <span class=kt>true</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>                    <span class=p>});</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=k>if</span> <span class=p>(</span><span class=nx>existingUser</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                        <span class=c1>// 如果用户存在但没有 GitHub 账号，则添加 GitHub 账号
+</span></span></span><span class=line><span class=cl><span class=c1></span>                        <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>existingUser</span><span class=p>.</span><span class=nx>accounts</span><span class=p>.</span><span class=nx>some</span><span class=p>(</span><span class=nx>acc</span> <span class=o>=&gt;</span> <span class=nx>acc</span><span class=p>.</span><span class=nx>provider</span> <span class=o>===</span> <span class=s1>&#39;github&#39;</span><span class=p>))</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                            <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>account</span><span class=p>.</span><span class=nx>create</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>                                <span class=nx>data</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>userId</span>: <span class=kt>existingUser.id</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=kr>type</span><span class=o>:</span> <span class=nx>account</span><span class=p>.</span><span class=kr>type</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>provider</span>: <span class=kt>account.provider</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>providerAccountId</span>: <span class=kt>account.providerAccountId</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>access_token</span>: <span class=kt>account.access_token</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>token_type</span>: <span class=kt>account.token_type</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>scope</span>: <span class=kt>account.scope</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                            <span class=p>});</span>
+</span></span><span class=line><span class=cl>                        <span class=p>}</span>
+</span></span><span class=line><span class=cl>                        <span class=k>return</span> <span class=kc>true</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                    <span class=c1>// 如果用户不存在，创建新用户
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>create</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>                        <span class=nx>data</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                            <span class=nx>name</span>: <span class=kt>profile.name</span> <span class=o>||</span> <span class=p>(</span><span class=nx>profile</span> <span class=kr>as</span> <span class=kt>any</span><span class=p>).</span><span class=nx>login</span> <span class=o>||</span> <span class=s1>&#39;Unknown&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                            <span class=nx>email</span>: <span class=kt>profile.email</span> <span class=o>||</span> <span class=sb>`</span><span class=si>${</span><span class=nx>account</span><span class=p>.</span><span class=nx>providerAccountId</span><span class=si>}</span><span class=sb>@github.com`</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                            <span class=nx>accounts</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                                <span class=nx>create</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                                    <span class=kr>type</span><span class=o>:</span> <span class=nx>account</span><span class=p>.</span><span class=kr>type</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>provider</span>: <span class=kt>account.provider</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>providerAccountId</span>: <span class=kt>account.providerAccountId</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>access_token</span>: <span class=kt>account.access_token</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>token_type</span>: <span class=kt>account.token_type</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                    <span class=nx>scope</span>: <span class=kt>account.scope</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                                <span class=p>}</span>
+</span></span><span class=line><span class=cl>                            <span class=p>}</span>
+</span></span><span class=line><span class=cl>                        <span class=p>}</span>
+</span></span><span class=line><span class=cl>                    <span class=p>});</span>
+</span></span><span class=line><span class=cl>                <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=kc>true</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span> <span class=k>catch</span> <span class=p>(</span><span class=nx>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>console</span><span class=p>.</span><span class=nx>error</span><span class=p>(</span><span class=s2>&#34;Error in signIn callback:&#34;</span><span class=p>,</span> <span class=nx>error</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=kc>false</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// JWT 回调
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kr>async</span> <span class=nx>jwt</span><span class=p>({</span><span class=nx>token</span><span class=p>,</span> <span class=nx>user</span><span class=p>,</span> <span class=nx>account</span><span class=p>})</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=nx>user</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>token</span><span class=p>.</span><span class=nx>id</span> <span class=o>=</span> <span class=nx>user</span><span class=p>.</span><span class=nx>id</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=nx>account</span> <span class=o>&amp;&amp;</span> <span class=nx>account</span><span class=p>.</span><span class=nx>access_token</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nx>token</span><span class=p>.</span><span class=nx>accessToken</span> <span class=o>=</span> <span class=nx>account</span><span class=p>.</span><span class=nx>access_token</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>token</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 会话回调
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kr>async</span> <span class=nx>session</span><span class=p>({</span><span class=nx>session</span><span class=p>,</span> <span class=nx>token</span><span class=p>})</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=p>(</span><span class=nx>session</span><span class=p>.</span><span class=nx>user</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=p>(</span><span class=nx>session</span><span class=p>.</span><span class=nx>user</span> <span class=kr>as</span> <span class=kt>any</span><span class=p>).</span><span class=nx>id</span> <span class=o>=</span> <span class=nx>token</span><span class=p>.</span><span class=nx>id</span> <span class=kr>as</span> <span class=kt>string</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=p>(</span><span class=nx>session</span> <span class=kr>as</span> <span class=kt>any</span><span class=p>).</span><span class=nx>accessToken</span> <span class=o>=</span> <span class=nx>token</span><span class=p>.</span><span class=nx>accessToken</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>session</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=c1>// 重定向回调
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kr>async</span> <span class=nx>redirect</span><span class=p>({</span><span class=nx>url</span><span class=p>,</span> <span class=nx>baseUrl</span><span class=p>})</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 允许相对回调 URL
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=nx>url</span><span class=p>.</span><span class=nx>startsWith</span><span class=p>(</span><span class=s2>&#34;/&#34;</span><span class=p>))</span> <span class=k>return</span> <span class=sb>`</span><span class=si>${</span><span class=nx>baseUrl</span><span class=si>}${</span><span class=nx>url</span><span class=si>}</span><span class=sb>`</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// 允许同源的回调 URL
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>else</span> <span class=k>if</span> <span class=p>(</span><span class=k>new</span> <span class=nx>URL</span><span class=p>(</span><span class=nx>url</span><span class=p>).</span><span class=nx>origin</span> <span class=o>===</span> <span class=nx>baseUrl</span><span class=p>)</span> <span class=k>return</span> <span class=nx>url</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>baseUrl</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 认证事件处理
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>events</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=kr>async</span> <span class=nx>signIn</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;User signed in:&#34;</span><span class=p>,</span> <span class=nx>message</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=kr>async</span> <span class=nx>signOut</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;User signed out:&#34;</span><span class=p>,</span> <span class=nx>message</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=kr>async</span> <span class=nx>createUser</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;User created:&#34;</span><span class=p>,</span> <span class=nx>message</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=kr>async</span> <span class=nx>linkAccount</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;Account linked:&#34;</span><span class=p>,</span> <span class=nx>message</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=kr>async</span> <span class=nx>session</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;Session created:&#34;</span><span class=p>,</span> <span class=nx>message</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 开发环境启用调试模式
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>debug</span>: <span class=kt>process.env.NODE_ENV</span> <span class=o>===</span> <span class=s1>&#39;development&#39;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1>// 日志配置
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=nx>logger</span><span class=o>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>error</span><span class=p>(</span><span class=nx>code</span><span class=p>,</span> <span class=nx>metadata</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>error</span><span class=p>(</span><span class=nx>code</span><span class=p>,</span> <span class=nx>metadata</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=nx>warn</span><span class=p>(</span><span class=nx>code</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>warn</span><span class=p>(</span><span class=nx>code</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=nx>debug</span><span class=p>(</span><span class=nx>code</span><span class=p>,</span> <span class=nx>metadata</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=nx>code</span><span class=p>,</span> <span class=nx>metadata</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl><span class=p>};</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤5-创建api路由>步骤5: 创建API路由</h2><p>创建<code>app/api/auth/[...nextauth]/route.ts</code>文件:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-typescript data-lang=typescript><span class=line><span class=cl><span class=kr>import</span> <span class=nx>NextAuth</span> <span class=kr>from</span> <span class=s2>&#34;next-auth&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>authOptions</span> <span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;@/lib/auth&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>const</span> <span class=nx>handler</span> <span class=o>=</span> <span class=nx>NextAuth</span><span class=p>(</span><span class=nx>authOptions</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>export</span> <span class=p>{</span> <span class=nx>handler</span> <span class=kr>as</span> <span class=nx>GET</span><span class=p>,</span> <span class=nx>handler</span> <span class=kr>as</span> <span class=nx>POST</span> <span class=p>};</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤6-创建注册api>步骤6: 创建注册API</h2><p>创建<code>app/api/auth/register/route.ts</code>文件:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-typescript data-lang=typescript><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>NextResponse</span> <span class=p>}</span> <span class=kr>from</span> <span class=s1>&#39;next/server&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=nx>bcrypt</span> <span class=kr>from</span> <span class=s1>&#39;bcryptjs&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>PrismaClient</span> <span class=p>}</span> <span class=kr>from</span> <span class=s1>&#39;@prisma/client&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>const</span> <span class=nx>prisma</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>PrismaClient</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>export</span> <span class=kr>async</span> <span class=kd>function</span> <span class=nx>POST</span><span class=p>(</span><span class=nx>req</span>: <span class=kt>Request</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>try</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=kr>const</span> <span class=p>{</span> <span class=nx>name</span><span class=p>,</span> <span class=nx>email</span><span class=p>,</span> <span class=nx>password</span> <span class=p>}</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>req</span><span class=p>.</span><span class=nx>json</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kr>const</span> <span class=nx>existingUser</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>findUnique</span><span class=p>({</span> <span class=nx>where</span><span class=o>:</span> <span class=p>{</span> <span class=nx>email</span> <span class=p>}</span> <span class=p>});</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=nx>existingUser</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=nx>NextResponse</span><span class=p>.</span><span class=nx>json</span><span class=p>({</span> <span class=nx>error</span><span class=o>:</span> <span class=s2>&#34;User already exists&#34;</span> <span class=p>},</span> <span class=p>{</span> <span class=nx>status</span>: <span class=kt>400</span> <span class=p>});</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=kr>const</span> <span class=nx>hashedPassword</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>bcrypt</span><span class=p>.</span><span class=nx>hash</span><span class=p>(</span><span class=nx>password</span><span class=p>,</span> <span class=mi>10</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=kr>const</span> <span class=nx>user</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>prisma</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>create</span><span class=p>({</span>
+</span></span><span class=line><span class=cl>            <span class=nx>data</span><span class=o>:</span> <span class=p>{</span> <span class=nx>name</span><span class=p>,</span> <span class=nx>email</span><span class=p>,</span> <span class=nx>password</span>: <span class=kt>hashedPassword</span> <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=p>});</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nx>NextResponse</span><span class=p>.</span><span class=nx>json</span><span class=p>({</span> <span class=nx>message</span><span class=o>:</span> <span class=s2>&#34;User created successfully&#34;</span> <span class=p>},</span> <span class=p>{</span> <span class=nx>status</span>: <span class=kt>201</span> <span class=p>});</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span> <span class=k>catch</span> <span class=p>(</span><span class=nx>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nx>console</span><span class=p>.</span><span class=nx>error</span><span class=p>(</span><span class=s2>&#34;Registration error:&#34;</span><span class=p>,</span> <span class=nx>error</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=nx>NextResponse</span><span class=p>.</span><span class=nx>json</span><span class=p>({</span> <span class=nx>error</span><span class=o>:</span> <span class=s2>&#34;An error occurred during registration&#34;</span> <span class=p>},</span> <span class=p>{</span> <span class=nx>status</span>: <span class=kt>500</span> <span class=p>});</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤7-创建登录和注册页面>步骤7: 创建登录和注册页面</h2><p>创建<code>app/auth/signin/page.tsx</code>和<code>app/auth/register/page.tsx</code>文件,实现登录和注册表单。</p><h2 id=步骤8-在应用中使用nextauth>步骤8: 在应用中使用NextAuth</h2><p>在您的组件中,您可以使用<code>useSession</code>钩子来获取当前会话状态:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-typescript data-lang=typescript><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>useSession</span> <span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;next-auth/react&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>export</span> <span class=k>default</span> <span class=kd>function</span> <span class=nx>Component() {</span>
+</span></span><span class=line><span class=cl>  <span class=kr>const</span> <span class=p>{</span> <span class=nx>data</span>: <span class=kt>session</span> <span class=p>}</span> <span class=o>=</span> <span class=nx>useSession</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=p>(</span><span class=nx>session</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=p>&lt;</span><span class=nt>p</span><span class=p>&gt;</span><span class=nx>Welcome</span><span class=p>,</span> <span class=p>{</span><span class=nx>session</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>name</span><span class=p>}</span><span class=o>!</span><span class=p>&lt;/</span><span class=nt>p</span><span class=p>&gt;;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=p>&lt;</span><span class=nt>p</span><span class=p>&gt;</span><span class=nx>Please</span> <span class=nx>sign</span> <span class=k>in</span><span class=p>&lt;/</span><span class=nt>p</span><span class=p>&gt;;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=步骤9-保护路由>步骤9: 保护路由</h2><p>您可以使用<code>getServerSession</code>函数来保护服务器端路由:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-typescript data-lang=typescript><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>getServerSession</span> <span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;next-auth/next&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=kr>import</span> <span class=p>{</span> <span class=nx>authOptions</span> <span class=p>}</span> <span class=kr>from</span> <span class=s2>&#34;@/lib/auth&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kr>export</span> <span class=k>default</span> <span class=kr>async</span> <span class=kd>function</span> <span class=nx>ProtectedPage() {</span>
+</span></span><span class=line><span class=cl>  <span class=kr>const</span> <span class=nx>session</span> <span class=o>=</span> <span class=k>await</span> <span class=nx>getServerSession</span><span class=p>(</span><span class=nx>authOptions</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>session</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=p>&lt;</span><span class=nt>p</span><span class=p>&gt;</span><span class=nx>Access</span> <span class=nx>Denied</span><span class=p>&lt;/</span><span class=nt>p</span><span class=p>&gt;;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=p>&lt;</span><span class=nt>p</span><span class=p>&gt;</span><span class=nx>Welcome</span> <span class=nx>to</span> <span class=nx>the</span> <span class=kr>protected</span> <span class=nx>page</span><span class=p>,</span> <span class=p>{</span><span class=nx>session</span><span class=p>.</span><span class=nx>user</span><span class=p>.</span><span class=nx>name</span><span class=p>}</span><span class=o>!</span><span class=p>&lt;/</span><span class=nt>p</span><span class=p>&gt;;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>这就是在Next.js项目中设置和配置NextAuth的基本步骤。根据您的具体需求,您可能需要进行更多自定义配置。</p></section><footer class=article-footer><section class=article-tags><a href=/woniublog/tags/next.js/>Next.js</a>
+<a href=/woniublog/tags/authentication/>Authentication</a>
+<a href=/woniublog/tags/prisma/>Prisma</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article class=has-image><a href=/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/><div class=article-image><img src=/woniublog/p/%E5%A6%82%E4%BD%95%E7%94%A8electron%E5%AE%9E%E7%8E%B0120fps%E9%AB%98%E5%B8%A7%E7%8E%87%E8%A7%86%E9%A2%91%E9%87%87%E9%9B%86/cover.c514d916917173a48a42e0114b469961_hu_12cb662251854034.jpg width=250 height=150 loading=lazy alt="Featured image of post 如何用Electron实现120fps高帧率视频采集" data-hash="md5-xRTZFpFxc6SKQuARS0aZYQ=="></div><div class=article-details><h2 class=article-title>如何用Electron实现120fps高帧率视频采集</h2></div></a></article><article class=has-image><a href=/woniublog/p/vue%E7%BB%84%E4%BB%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E4%B8%8Ekey%E5%B1%9E%E6%80%A7%E5%88%B7%E6%96%B0/><div class=article-image><img src=/woniublog/p/vue%E7%BB%84%E4%BB%B6%E5%A4%8D%E7%94%A8%E6%9C%BA%E5%88%B6%E4%B8%8Ekey%E5%B1%9E%E6%80%A7%E5%88%B7%E6%96%B0/cover.464ddeadba389dc3671fcf17098485d5_hu_80e1d1bb000b9229.png width=250 height=150 loading=lazy alt="Featured image of post Vue组件复用机制与key属性刷新" data-hash="md5-Rk3erbo4ncNnH88XCYSF1Q=="></div><div class=article-details><h2 class=article-title>Vue组件复用机制与key属性刷新</h2></div></a></article><article class=has-image><a href=/woniublog/p/electron%E9%9B%86%E6%88%90ffmpeg/><div class=article-image><img src=/woniublog/p/electron%E9%9B%86%E6%88%90ffmpeg/cover.15e822f1a663c028128cf6267c0263e4_hu_d04eeaf3cf54db83.png width=250 height=150 loading=lazy alt="Featured image of post Electron集成FFmpeg" data-hash="md5-Fegi8aZjwCgSjPYmfAJj5A=="></div><div class=article-details><h2 class=article-title>Electron集成FFmpeg</h2></div></a></article><article class=has-image><a href=/woniublog/p/electron%E8%B7%A8%E8%AF%AD%E8%A8%80%E9%80%9A%E4%BF%A1/><div class=article-image><img src=/woniublog/p/electron%E8%B7%A8%E8%AF%AD%E8%A8%80%E9%80%9A%E4%BF%A1/cover.e173a0d99e5a15ed89e0d623a0ce287f_hu_29053f32fcb380e1.png width=250 height=150 loading=lazy alt="Featured image of post Electron跨语言通信" data-hash="md5-4XOg2Z5aFe2J4NYjoM4ofw=="></div><div class=article-details><h2 class=article-title>Electron跨语言通信</h2></div></a></article><article class=has-image><a href=/woniublog/p/fabric%E7%BB%98%E5%88%B6%E5%9B%BE%E5%BD%A2%E5%A1%AB%E5%85%85%E5%8C%BA%E5%9F%9F%E5%92%8C%E6%A3%80%E6%B5%8B/><div class=article-image><img src=/woniublog/p/fabric%E7%BB%98%E5%88%B6%E5%9B%BE%E5%BD%A2%E5%A1%AB%E5%85%85%E5%8C%BA%E5%9F%9F%E5%92%8C%E6%A3%80%E6%B5%8B/cover.b8cab86a7b62513b937198b5d539a001_hu_9e6f57aa6fbb26e4.png width=250 height=150 loading=lazy alt="Featured image of post Fabric绘制图形，填充区域和检测" data-hash="md5-uMq4antiUTuTcZi11TmgAQ=="></div><div class=article-details><h2 class=article-title>Fabric绘制图形，填充区域和检测</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//ZhangChengのBlog.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2025 ZhangChengのBlog</section><section class=powerby>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.30.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计</section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/woniublog/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>
