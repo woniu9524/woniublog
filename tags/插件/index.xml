@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>插件 on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/%E6%8F%92%E4%BB%B6/</link><description>Recent content in 插件 on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Mon, 17 Nov 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/%E6%8F%92%E4%BB%B6/index.xml" rel="self" type="application/rss+xml"/><item><title>ParallelChat：我觉得还可以再抢救一下</title><link>https://woniu9524.github.io/woniublog/p/parallelchat%E6%88%91%E8%A7%89%E5%BE%97%E8%BF%98%E5%8F%AF%E4%BB%A5%E5%86%8D%E6%8A%A2%E6%95%91%E4%B8%80%E4%B8%8B/</link><pubDate>Mon, 17 Nov 2025 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/parallelchat%E6%88%91%E8%A7%89%E5%BE%97%E8%BF%98%E5%8F%AF%E4%BB%A5%E5%86%8D%E6%8A%A2%E6%95%91%E4%B8%80%E4%B8%8B/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/parallelchat%E6%88%91%E8%A7%89%E5%BE%97%E8%BF%98%E5%8F%AF%E4%BB%A5%E5%86%8D%E6%8A%A2%E6%95%91%E4%B8%80%E4%B8%8B/cover.jpg" alt="Featured image of post ParallelChat：我觉得还可以再抢救一下" /&gt;&lt;h1 id="parallelchat我觉得还可以再抢救一下"&gt;ParallelChat：我觉得还可以再抢救一下
+&lt;/h1&gt;&lt;p&gt;本以为已经宣告死亡的项目，却在一次偶然的发现中找到了重生的可能。&lt;/p&gt;
+&lt;p&gt;前文说到，ParallelChat 发布即死亡，因为发现被浏览器插件吊着打。对于浏览器插件环境更正常，另外最致命的就是 Electron 环境无法登录 Gemini。&lt;/p&gt;
+&lt;h2 id="转机一次偶然的发现"&gt;转机：一次偶然的发现
+&lt;/h2&gt;&lt;p&gt;为什么说还可以抢救一下呢？因为看到一个 issue，说 Cherry Studio 里可以实现 Google 登录。于是我去看了一下源码，相关部分是伪装 UA，但伪装成的是 Safari，于是我也试了一下，成功！&lt;/p&gt;
+&lt;h2 id="重新审视electron-的隐藏优势"&gt;重新审视：Electron 的隐藏优势
+&lt;/h2&gt;&lt;p&gt;解决了登录问题后，和 Chrome 插件对比，Electron 方案可以说还是没有一点优点。没想到其实还有一个优势的，对于 Electron 来说，问题也是在 Gemini 上。&lt;/p&gt;
+&lt;p&gt;有个朋友和我聊天时提到，他用的浏览器插件没有文件上传功能。我去试了一下确实没有提供这个功能。我对 Chrome 插件不算熟悉，但是相对来说插件受到更严格的权限控制，所以实现上传我不太清楚插件容不容易实现。但是对于 Gemini插件应该很难实现。其他几个网站都是点击 input 来触发上传，所以很容易。但是 Gemini 有点特殊，不知道是不是因为它是基于 Angular 的原因，Gemini 网站的上传逻辑是点击上传按钮，动态创建 input，然后触发上传。并且这个点击按钮似乎必须在 isTrusted 为 true 的情况下才能触发，也就是说该事件是由用户的真实操作（如鼠标点击、键盘输入）触发。在 Chrome 插件里我觉得很难做到。但是在 Electron 可以通过 CDB 来实现。&lt;/p&gt;
+&lt;p&gt;也就是说，Electron 相对来说有更大的权限，更容易实现受限制功能。&lt;/p&gt;
+&lt;h2 id="结语半死不活"&gt;结语：半死不活
+&lt;/h2&gt;&lt;p&gt;ParallelChat 相比插件我觉得体验要差了不少，但好在有一些补充。实际上在我的计划里有提取内容做成 API 接口的打算，不过算了，这个项目就这样吧。&lt;/p&gt;</description></item><item><title>出师未捷身先死：一次失败的开发经历</title><link>https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/</link><pubDate>Fri, 31 Oct 2025 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/cover.png" alt="Featured image of post 出师未捷身先死：一次失败的开发经历" /&gt;&lt;blockquote&gt;
+&lt;p&gt;出师未捷身先死，记录一次失败的开发经历。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;几周前，我在和 AI 对话的时候，有一个需求，就是希望和不同 AI 对话。于是我尝试去搜索了相关工具，搜到的都是基于 API 来实现的。对我来说，我更希望是使用免费的官网。&lt;/p&gt;
+&lt;p&gt;于是我就尝试自己动手做。&lt;/p&gt;
+&lt;p&gt;我的第一个反应就是用 Electron 来实现，这也是我最熟悉的技术栈。于是我尝试做了一个 demo，稍有问题，但是可以确认能够实现。&lt;/p&gt;
+&lt;p&gt;于是开工，编码，完成个七七八八。之后在接入 Gemini 的时候发现了一个致命的问题：无法登录谷歌账户。最后在项目实际使用的时候，还有一个问题容易被认为是异常从而触发风险验证。&lt;/p&gt;
+&lt;p&gt;此时，我觉得其实问题不大，用起来体验还算尚可。然后我刷知乎刷到一个插件版的，此时我还没意识到问题。&lt;/p&gt;
+&lt;p&gt;今天发到 Linux.do 的时候有人推荐了同类的插件应用，我点进去看才发现，插件可以解决 Electron 存在的问题。至此项目失败。&lt;/p&gt;
+&lt;h2 id="软件版本electron"&gt;软件版本（Electron）
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh.jpg"
+width="1600"
+height="900"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh_hu_b2f7d53513ad522b.jpg 480w, https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh_hu_39f5ec434e7c069c.jpg 1024w"
+loading="lazy"
+alt="软件"
+class="gallery-image"
+data-flex-grow="177"
+data-flex-basis="426px"
+&gt;&lt;/p&gt;
+&lt;h2 id="插件版本浏览器插件"&gt;插件版本（浏览器插件）
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin.png"
+width="1919"
+height="915"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin_hu_ab739f1352dc1c37.png 480w, https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin_hu_344bc64f586042ba.png 1024w"
+loading="lazy"
+alt="插件"
+class="gallery-image"
+data-flex-grow="209"
+data-flex-basis="503px"
+&gt;&lt;/p&gt;
+&lt;h3 id="反思"&gt;反思
+&lt;/h3&gt;&lt;p&gt;首先是前期调研，显然不够彻底，没有发现同类工具。而且很莫名其妙的是在完成得差不多的时候被推荐到这个工具。上次做的插件也是，前期调研的时候没搜到类似的工具，做完了刷个手机就刷出来，很神奇。所以下次调研的时候要彻底一点。&lt;/p&gt;
+&lt;p&gt;第二个大的问题就是技术方案选择错误，我先入为主地选择了 Electron。当然如果没有 Gemini 的问题，其实 Electron 问题也不大，但是相比之下确实不如插件。&lt;/p&gt;
+&lt;p&gt;另外就是容易触发风控，Electron 容易被检测出来当成爬虫，插件我想在这个方面应该会好很多。&lt;/p&gt;
+&lt;h3 id="总结"&gt;总结
+&lt;/h3&gt;&lt;p&gt;总之，项目很失败，只能说当作一次经验教训了。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>调研 on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/%E8%B0%83%E7%A0%94/</link><description>Recent content in 调研 on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 31 Oct 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/%E8%B0%83%E7%A0%94/index.xml" rel="self" type="application/rss+xml"/><item><title>出师未捷身先死：一次失败的开发经历</title><link>https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/</link><pubDate>Fri, 31 Oct 2025 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/cover.png" alt="Featured image of post 出师未捷身先死：一次失败的开发经历" /&gt;&lt;blockquote&gt;
+&lt;p&gt;出师未捷身先死，记录一次失败的开发经历。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;几周前，我在和 AI 对话的时候，有一个需求，就是希望和不同 AI 对话。于是我尝试去搜索了相关工具，搜到的都是基于 API 来实现的。对我来说，我更希望是使用免费的官网。&lt;/p&gt;
+&lt;p&gt;于是我就尝试自己动手做。&lt;/p&gt;
+&lt;p&gt;我的第一个反应就是用 Electron 来实现，这也是我最熟悉的技术栈。于是我尝试做了一个 demo，稍有问题，但是可以确认能够实现。&lt;/p&gt;
+&lt;p&gt;于是开工，编码，完成个七七八八。之后在接入 Gemini 的时候发现了一个致命的问题：无法登录谷歌账户。最后在项目实际使用的时候，还有一个问题容易被认为是异常从而触发风险验证。&lt;/p&gt;
+&lt;p&gt;此时，我觉得其实问题不大，用起来体验还算尚可。然后我刷知乎刷到一个插件版的，此时我还没意识到问题。&lt;/p&gt;
+&lt;p&gt;今天发到 Linux.do 的时候有人推荐了同类的插件应用，我点进去看才发现，插件可以解决 Electron 存在的问题。至此项目失败。&lt;/p&gt;
+&lt;h2 id="软件版本electron"&gt;软件版本（Electron）
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh.jpg"
+width="1600"
+height="900"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh_hu_b2f7d53513ad522b.jpg 480w, https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/parallelchat-zh_hu_39f5ec434e7c069c.jpg 1024w"
+loading="lazy"
+alt="软件"
+class="gallery-image"
+data-flex-grow="177"
+data-flex-basis="426px"
+&gt;&lt;/p&gt;
+&lt;h2 id="插件版本浏览器插件"&gt;插件版本（浏览器插件）
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin.png"
+width="1919"
+height="915"
+srcset="https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin_hu_ab739f1352dc1c37.png 480w, https://woniu9524.github.io/woniublog/p/%E5%87%BA%E5%B8%88%E6%9C%AA%E6%8D%B7%E8%BA%AB%E5%85%88%E6%AD%BB%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84%E5%BC%80%E5%8F%91%E7%BB%8F%E5%8E%86/plugin_hu_344bc64f586042ba.png 1024w"
+loading="lazy"
+alt="插件"
+class="gallery-image"
+data-flex-grow="209"
+data-flex-basis="503px"
+&gt;&lt;/p&gt;
+&lt;h3 id="反思"&gt;反思
+&lt;/h3&gt;&lt;p&gt;首先是前期调研，显然不够彻底，没有发现同类工具。而且很莫名其妙的是在完成得差不多的时候被推荐到这个工具。上次做的插件也是，前期调研的时候没搜到类似的工具，做完了刷个手机就刷出来，很神奇。所以下次调研的时候要彻底一点。&lt;/p&gt;
+&lt;p&gt;第二个大的问题就是技术方案选择错误，我先入为主地选择了 Electron。当然如果没有 Gemini 的问题，其实 Electron 问题也不大，但是相比之下确实不如插件。&lt;/p&gt;
+&lt;p&gt;另外就是容易触发风控，Electron 容易被检测出来当成爬虫，插件我想在这个方面应该会好很多。&lt;/p&gt;
+&lt;h3 id="总结"&gt;总结
+&lt;/h3&gt;&lt;p&gt;总之，项目很失败，只能说当作一次经验教训了。&lt;/p&gt;</description></item></channel></rss>

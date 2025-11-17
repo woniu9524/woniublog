@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Version-Control on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/version-control/</link><description>Recent content in Version-Control on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Tue, 15 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/version-control/index.xml" rel="self" type="application/rss+xml"/><item><title>Git Revert 使用指南</title><link>https://woniu9524.github.io/woniublog/p/git-revert-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</link><pubDate>Tue, 15 Oct 2024 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/git-revert-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/git-revert-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/cover.jpg" alt="Featured image of post Git Revert 使用指南" /&gt;&lt;h1 id="git-revert-使用指南"&gt;Git Revert 使用指南
+&lt;/h1&gt;&lt;blockquote&gt;
+&lt;p&gt;使用revert撤销一个提交&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="什么是-git-revert"&gt;什么是 Git Revert？
+&lt;/h2&gt;&lt;p&gt;Git revert 是一个用于撤销之前的某个提交的命令。与 &lt;code&gt;git reset&lt;/code&gt; 不同，&lt;code&gt;git revert&lt;/code&gt; 不会删除任何历史记录，而是通过创建一个新的提交来撤销指定提交的更改。&lt;/p&gt;
+&lt;h2 id="为什么使用-revert"&gt;为什么使用 Revert？
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;安全：不改变提交历史，适合在共享分支上使用。&lt;/li&gt;
+&lt;li&gt;可追踪：撤销操作本身被记录为一个新的提交。&lt;/li&gt;
+&lt;li&gt;灵活：可以撤销任何历史提交，而不仅仅是最近的几个。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="如何使用-revert"&gt;如何使用 Revert
+&lt;/h2&gt;&lt;h3 id="基本用法"&gt;基本用法
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;找到要撤销的提交的 hash：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git log --oneline
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;执行 revert 命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git revert &amp;lt;commit-hash&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;解决可能出现的冲突（如果有的话）。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;提交 revert 更改：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git commit -m &amp;#34;Revert &amp;#39;xxx&amp;#39;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="示例"&gt;示例
+&lt;/h3&gt;&lt;p&gt;假设我们有以下提交历史：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;span class="lnt"&gt;2
+&lt;/span&gt;&lt;span class="lnt"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;abc1234 (HEAD -&amp;gt; main) Add feature C
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;def5678 Add feature B (要撤销的提交)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ghi9101 Add feature A
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;要撤销 &amp;ldquo;Add feature B&amp;rdquo; 的提交，我们可以：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git revert def5678
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这将创建一个新的提交，撤销 &amp;ldquo;Add feature B&amp;rdquo; 的更改。&lt;/p&gt;
+&lt;h3 id="撤销多个提交"&gt;撤销多个提交
+&lt;/h3&gt;&lt;p&gt;要撤销多个连续的提交，可以使用：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git revert HEAD~3..HEAD
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这将撤销最近的三个提交。&lt;/p&gt;
+&lt;h3 id="只创建-revert-提交而不自动提交"&gt;只创建 Revert 提交而不自动提交
+&lt;/h3&gt;&lt;p&gt;如果你想在提交前检查 revert 的结果：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git revert -n &amp;lt;commit-hash&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这会将更改添加到工作目录和暂存区，但不会自动创建新的提交。&lt;/p&gt;
+&lt;h2 id="注意事项"&gt;注意事项
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;确保在执行 revert 前，你的工作目录是干净的。&lt;/li&gt;
+&lt;li&gt;如果 revert 的提交与之后的提交有冲突，你可能需要手动解决这些冲突。&lt;/li&gt;
+&lt;li&gt;对于已经推送到远程仓库的提交，使用 revert 比使用 reset 更安全。&lt;/li&gt;
+&lt;li&gt;git revert 操作时，Git 不允许在有未提交更改的情况下执行 revert，以防止你的本地修改被意外覆盖。&lt;/li&gt;
+&lt;/ol&gt;</description></item></channel></rss>

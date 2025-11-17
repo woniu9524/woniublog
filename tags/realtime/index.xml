@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Realtime on ZhangChengのBlog</title><link>https://woniu9524.github.io/woniublog/tags/realtime/</link><description>Recent content in Realtime on ZhangChengのBlog</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Mon, 17 Nov 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://woniu9524.github.io/woniublog/tags/realtime/index.xml" rel="self" type="application/rss+xml"/><item><title>情侣飞行棋 v2：Supabase 初体验</title><link>https://woniu9524.github.io/woniublog/p/%E6%83%85%E4%BE%A3%E9%A3%9E%E8%A1%8C%E6%A3%8B-v2supabase-%E5%88%9D%E4%BD%93%E9%AA%8C/</link><pubDate>Mon, 17 Nov 2025 00:00:00 +0000</pubDate><guid>https://woniu9524.github.io/woniublog/p/%E6%83%85%E4%BE%A3%E9%A3%9E%E8%A1%8C%E6%A3%8B-v2supabase-%E5%88%9D%E4%BD%93%E9%AA%8C/</guid><description>&lt;img src="https://woniu9524.github.io/woniublog/p/%E6%83%85%E4%BE%A3%E9%A3%9E%E8%A1%8C%E6%A3%8B-v2supabase-%E5%88%9D%E4%BD%93%E9%AA%8C/cover.jpg" alt="Featured image of post 情侣飞行棋 v2：Supabase 初体验" /&gt;&lt;h1 id="情侣飞行棋-v2supabase-初体验"&gt;情侣飞行棋 v2：Supabase 初体验
+&lt;/h1&gt;&lt;p&gt;之前用 Next.js 做过一个情侣飞行棋小游戏，但一直有个痛点——两个人必须挤在同一个手机上玩，操作起来总感觉不太方便。而且产品设计上也有一些可以优化的地方，于是决定动手重构一版。&lt;/p&gt;
+&lt;h2 id="技术选型"&gt;技术选型
+&lt;/h2&gt;&lt;p&gt;最初的技术方案是 Next.js 搭配 Go 语言，但想到部署需要服务器，维护成本有点高，就转向了更轻量级的方案。最终选择了 Next.js + Supabase 的组合。&lt;/p&gt;
+&lt;p&gt;Supabase 这个开源数据库基于 PostgreSQL，不仅提供了数据库服务，还有身份验证、存储、实时同步这些功能，对于我这种小项目来说，非常适合。&lt;/p&gt;
+&lt;h2 id="开发体验"&gt;开发体验
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;找一个 Next.js + Supabase 项目模板。&lt;/li&gt;
+&lt;li&gt;Supabase 的初始化非常简单，只需要在 Supabase 官网上创建一个项目，然后在本地配置一下。&lt;/li&gt;
+&lt;li&gt;创建数据库和 RLS 策略。RLS 用来控制数据库访问权限，是一个需要认真理解的点。&lt;/li&gt;
+&lt;li&gt;配置 Realtime：基于 PG 表变化来实现实时同步。&lt;/li&gt;
+&lt;li&gt;配置 Supabase 的 Auth：开箱即用，使用起来很简单。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="使用体验"&gt;使用体验
+&lt;/h2&gt;&lt;p&gt;说实话，实际用起来稍微有点卡顿。可能是因为服务器在国外的原因，也可能是 Supabase 本身的性能限制，或者干脆就是我代码写得不够优化。总之，能用是能用，但流畅度还有提升空间。&lt;/p&gt;
+&lt;h2 id="总结"&gt;总结
+&lt;/h2&gt;&lt;p&gt;因为情侣飞行棋有隐私需求，私有化部署比较多，Supabase 是个不错的选项，因为可以免费。&lt;/p&gt;
+&lt;p&gt;但是从使用体验来说，例如我在维护网站、给大量用户使用，那就不是一个太好的方案了。&lt;/p&gt;</description></item></channel></rss>
