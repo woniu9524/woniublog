@@ -11,7 +11,7 @@ tags:
     - Google登录
     - UA
     - CDB
-image: cover.png
+image: cover.jpg
 ---
 
 # ParallelChat：我觉得还可以再抢救一下
